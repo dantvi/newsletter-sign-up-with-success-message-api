@@ -1,39 +1,29 @@
 const express = require('express');
 const cors = require('cors');
+const knex = require('knex');
+const register = require('./controllers/register');
+
+require('dotenv').config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const database = {
-  users: [
-    {
-      id: '1',
-      email: 'john@gmail.com',
-      joined: new Date()
-    },
-    {
-      id: '2',
-      email: 'ann@gmail.com',
-      joined: new Date()
-    }
-  ]
-}
+const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
 
-app.get('/users', (req, res) => {
-  res.send(database.users);
+const db = knex({
+  client: 'pg',
+  connection: {
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME
+  }
 });
 
-app.post('/register', (req, res) => {
-  const { email } = req.body;
-  database.users.push({
-    id: database.users.length + 1,
-    email: email,
-    joined: new Date()
-  });
-  res.json(database.users[database.users.length - 1]);
-});
+app.get('/', (req, res) => { res.send('success') });
+app.post('/register', (req, res) => { register.handleRegister(req, res, db) });
 
 app.listen(3000, () => {
   console.log('server is running on port 3000');
